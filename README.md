@@ -1,154 +1,106 @@
-# \# RealAgents Housing Price Prediction
+# Housing Price Prediction ML Pipeline
 
-# 
+Portfolio project for cleaning housing transaction data, exploring price drivers, and comparing baseline versus non-linear regression models for sale price prediction.
 
-# \## Author: Owen Nda Diche
+## Project Snapshot
 
-# 
+RealAgents wants more accurate listing prices so agents can reduce time-to-sale and identify properties that need manual valuation review. This repository turns a raw housing dataset into:
 
-# \## Project overview
+- a cleaned analysis table with consistent dates, categories, numeric areas, and imputed missing values
+- exploratory pricing summaries by bedroom count, city, property type, listing duration, and sale month
+- a reproducible model comparison between Ridge Regression and Histogram Gradient Boosting
+- an interactive Streamlit dashboard for market exploration, model review, and scenario valuation
 
-# RealAgents operates in a metropolitan area and wants to reduce time-to-sale by setting more accurate listing prices. This project cleans historical sales data, explores price patterns, and trains two regression models to predict sale price.
+## Repository Structure
 
-# 
+| Path | Purpose |
+| --- | --- |
+| `app.py` | Streamlit dashboard with market filters, model diagnostics, feature importance, and a valuation lab. |
+| `Housing-price-prediction-ML-pipeline.ipynb` | Notebook version of the original data cleaning and modeling workflow. |
+| `Housing.csv` | Source housing transactions used by the notebook and dashboard. |
+| `scripts/validate_model.py` | Command-line validation script that retrains both models and prints holdout metrics. |
+| `requirements.txt` | Python dependencies for the app and validation workflow. |
 
-# \## Dataset
+## Dataset
 
-# \*\*File:\*\* `Housing.csv`  
+The project uses `Housing.csv`.
 
-# \*\*Target:\*\* `sale\_price`  
+Key fields:
 
-# \*\*Key features:\*\*
+- `house_id`: property identifier
+- `city`: market location
+- `sale_price`: model target
+- `sale_date`: transaction date
+- `months_listed`: time on market
+- `bedrooms`: room count
+- `house_type`: detached, semi-detached, or terraced
+- `area`: property area, stored as text and cleaned into square metres
 
-# \- `city` (categorical)
+## Modeling Approach
 
-# \- `sale\_date` (date)
+The pipeline applies deterministic cleaning rules before modeling:
 
-# \- `months\_listed` (numeric)
+- standardizes text fields and placeholder missing values
+- fills missing city values as `Unknown`
+- imputes missing dates with `2023-01-01`
+- imputes numeric columns with mean values where required
+- normalizes house type labels such as `Det.` and `Semi Detached`
+- extracts numeric area values from strings like `107.8 sq.m.`
+- drops rows without a valid target price
 
-# \- `bedrooms` (numeric)
+Two models are evaluated on a fixed 80/20 holdout split:
 
-# \- `house\_type` (categorical/ordinal)
+- **Baseline:** Ridge Regression with one-hot encoded categorical features and scaled numeric features
+- **Comparison:** Histogram Gradient Boosting Regressor using the same engineered feature set
 
-# \- `area` (numeric extracted from text like `"107.8 sq.m."`)
+The dashboard reports RMSE, MAE, R², absolute error distributions, difficult validation cases, and permutation importance.
 
-# 
+## Streamlit Dashboard
 
-# \## Tasks implemented (1–5)
+Run the dashboard locally:
 
-# \### Task 1 — Missing value audit
+```bash
+pip install -r requirements.txt
+streamlit run app.py
+```
 
-# \- Computed the number of missing `city` values.
+Dashboard views:
 
-# \- In this dataset, missing cities are represented as `"--"`.
+- **Executive Overview:** headline market KPIs, pricing trend, city leaderboard, and model snapshot
+- **Market Drivers:** bedroom, house type, area, listing-duration, and city benchmark analysis
+- **Model Review:** Ridge versus HistGradientBoosting diagnostics and validation error review
+- **Valuation Lab:** scenario-based price estimates for custom property profiles
+- **Insights:** generated takeaways from the current filter selection
 
-# 
+## Reproduce Model Metrics
 
-# \### Task 2 — Data cleaning (rule-based)
+Run the validation script:
 
-# Created `clean\_data` by applying strict cleaning rules:
+```bash
+python scripts/validate_model.py
+```
 
-# \- Standardized text fields (trim whitespace, collapse spaces, normalize case)
+Expected output includes row counts plus holdout metrics for both models. On the current dataset, Histogram Gradient Boosting should outperform the Ridge baseline on RMSE.
 
-# \- Treated common placeholder values (e.g., `"--"`, `"NA"`) as missing
+Example metrics from the current data and fixed split:
 
-# \- Applied rule-based imputation:
+| Model | RMSE | MAE | R² |
+| --- | ---: | ---: | ---: |
+| Ridge Regression | about 21,500 | reported by script | reported by script |
+| Histogram Gradient Boosting | about 15,950 | reported by script | reported by script |
 
-# &nbsp; - `city` → `"Unknown"`
+## Portfolio Notes
 
-# &nbsp; - `sale\_date` → `"2023-01-01"` if missing
+This project demonstrates:
 
-# &nbsp; - `months\_listed` → mean (rounded to 1 dp)
+- practical tabular data cleaning for messy business data
+- interpretable baseline modeling before using a stronger non-linear estimator
+- model evaluation beyond a single score
+- an applied analytics interface that turns a notebook workflow into a usable decision-support tool
 
-# &nbsp; - `bedrooms` → mean (rounded to nearest int)
-
-# &nbsp; - `house\_type` → mode (standardized to `Terraced`, `Semi-detached`, `Detached`)
-
-# &nbsp; - `area` → extracted numeric value from strings (then mean imputation, 1 dp)
-
-# \- Removed records with missing `sale\_price` and cast it to whole dollars (int)
-
-# 
-
-# \### Task 3 — Grouped aggregation
-
-# Created `price\_by\_rooms` to analyze pricing by bedroom count:
-
-# \- `avg\_price`: mean sale price per bedroom group (1 dp)
-
-# \- `var\_price`: variance of sale price per bedroom group (1 dp)
-
-# 
-
-# \### Task 4 — Baseline model
-
-# \- Trained a \*\*Ridge Regression\*\* model using one-hot encoding for categoricals.
-
-# \- Produced `base\_result` with `house\_id` and predicted `price`.
-
-# 
-
-# \### Task 5 — Comparison model
-
-# \- Trained a \*\*Histogram Gradient Boosting Regressor\*\* (non-linear model).
-
-# \- Produced `compare\_result` with `house\_id` and predicted `price`.
-
-# 
-
-# \## Results
-
-# Validation RMSE (lower is better):
-
-# \- \*\*Baseline (Ridge):\*\* ~ \*\*21,464\*\*
-
-# \- \*\*Comparison (HistGB):\*\* ~ \*\*16,598\*\*
-
-# 
-
-# The boosted model improved predictive accuracy substantially, suggesting non-linear relationships and feature interactions are important for pricing.
-
-# 
-
-# \## Key insights
-
-# \- \*\*Bedrooms are a strong driver\*\* of average price, but high variance within groups indicates other factors matter.
-
-# \- \*\*City, house type, and area\*\* provide additional predictive signal beyond bedrooms.
-
-# \- \*\*Gradient boosting outperforms linear regression\*\*, supporting the use of non-linear models for real estate pricing.
-
-# 
-
-# \## How to run
-
-# 1\. Place `Housing.csv` in the same folder as the notebook.
-
-# 2\. Open the notebook and run cells top-to-bottom.
-
-# 3\. Outputs generated:
-
-# &nbsp;  - `missing\_city`
-
-# &nbsp;  - `clean\_data`
-
-# &nbsp;  - `price\_by\_rooms`
-
-# &nbsp;  - `base\_result`
-
-# &nbsp;  - `compare\_result`
-
-# &nbsp;  - RMSE comparison table
-
-# 
-
-# \## Next improvements
-
-# \- Add cross-validation and hyperparameter tuning for the boosted model.
-
-# \- Engineer richer time features (e.g., quarter, seasonal indicators).
-
-# \- Add interpretation (permutation importance or SHAP) for feature impact and pricing drivers.
-
-
-
+## Next Improvements
+
+- add cross-validation and hyperparameter tuning for the gradient boosting model
+- persist trained model artifacts for faster deployment startup
+- add SHAP or partial dependence plots for deeper interpretation
+- package the cleaning and modeling code into reusable modules shared by the notebook, app, and validation script
