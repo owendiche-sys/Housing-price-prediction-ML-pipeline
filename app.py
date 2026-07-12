@@ -7,6 +7,7 @@ import numpy as np
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
+import plotly.io as pio
 import streamlit as st
 from sklearn.compose import ColumnTransformer
 from sklearn.ensemble import HistGradientBoostingRegressor
@@ -38,16 +39,41 @@ TEXT = "#0F172A"
 MUTED = "rgba(15,23,42,0.68)"
 BORDER = "rgba(15,23,42,0.08)"
 PRIMARY = "#2563EB"
+PRIMARY_STRONG = "#1E40AF"
 PRIMARY_SOFT = "rgba(37,99,235,0.12)"
 SUCCESS = "#059669"
 WARNING = "#D97706"
 DANGER = "#DC2626"
+
+pio.templates["realagents_light"] = go.layout.Template(
+    layout=go.Layout(
+        font=dict(color=TEXT),
+        paper_bgcolor=CARD,
+        plot_bgcolor=CARD,
+        colorway=["#2563EB", "#059669", "#D97706", "#DC2626", "#7C3AED", "#0891B2"],
+        xaxis=dict(
+            color=TEXT,
+            gridcolor="rgba(15,23,42,0.08)",
+            zerolinecolor="rgba(15,23,42,0.12)",
+        ),
+        yaxis=dict(
+            color=TEXT,
+            gridcolor="rgba(15,23,42,0.08)",
+            zerolinecolor="rgba(15,23,42,0.12)",
+        ),
+        legend=dict(font=dict(color=TEXT)),
+        title=dict(font=dict(color=TEXT)),
+    )
+)
+pio.templates.default = "realagents_light"
+px.defaults.template = "realagents_light"
 
 st.markdown(
     f"""
     <style>
     html, body, [data-testid="stAppViewContainer"] {{
         background: {BG};
+        color: {TEXT};
     }}
     .block-container {{
         padding-top: 1.9rem;
@@ -58,7 +84,49 @@ st.markdown(
         visibility: hidden;
     }}
     section[data-testid="stSidebar"] > div {{
+        background: {CARD};
         border-right: 1px solid {BORDER};
+    }}
+    .stApp :where(p, li, span, label, div, h1, h2, h3, h4, h5, h6),
+    :where([data-testid="stMarkdownContainer"]),
+    :where([data-testid="stMarkdownContainer"] p),
+    :where([data-testid="stWidgetLabel"]),
+    :where([data-testid="stWidgetLabel"] p),
+    :where([data-testid="stSidebar"] *),
+    :where([data-testid="stDataFrame"] *) {{
+        color: {TEXT};
+    }}
+    :where([data-baseweb="select"] *),
+    :where([data-baseweb="popover"] *),
+    :where([data-baseweb="menu"] *) {{
+        color: {TEXT};
+    }}
+    .stApp span[data-baseweb="tag"],
+    .stApp span[data-baseweb="tag"] span,
+    .stApp span[data-baseweb="tag"] svg,
+    .stApp span[data-baseweb="tag"] [role="presentation"] {{
+        color: #FFFFFF !important;
+        fill: #FFFFFF !important;
+        -webkit-text-fill-color: #FFFFFF !important;
+    }}
+    [data-testid="stSliderThumbValue"],
+    [data-testid="stSliderThumbValue"] * {{
+        color: #FFFFFF !important;
+        -webkit-text-fill-color: #FFFFFF !important;
+    }}
+    .stApp div[style*="translate(-50%, -50%)"]:has(> [data-testid="stSliderThumbValue"]) {{
+        color: #FFFFFF !important;
+        -webkit-text-fill-color: #FFFFFF !important;
+    }}
+    input,
+    textarea,
+    [contenteditable="true"] {{
+        color: {TEXT} !important;
+        background: {CARD} !important;
+    }}
+    .stAlert,
+    .stAlert * {{
+        color: {TEXT};
     }}
     .hero {{
         background: linear-gradient(135deg, rgba(37,99,235,0.12), rgba(37,99,235,0.04));
@@ -70,7 +138,7 @@ st.markdown(
     .badge {{
         display: inline-block;
         background: {PRIMARY_SOFT};
-        color: {PRIMARY};
+        color: {PRIMARY_STRONG};
         border: 1px solid rgba(37,99,235,0.14);
         border-radius: 999px;
         padding: 6px 12px;
